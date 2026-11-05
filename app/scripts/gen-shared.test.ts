@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { canonicalJson } from './canonical';
-import { featureSpecHash, renderAll, uuidFor } from './gen-shared';
+import { featureSpecHash, renderAll, renderReplay, uuidFor } from './gen-shared';
 
 // Same value is pinned in ml/tests/test_shared_contract.py.
 const EXPECTED_FEATURE_SPEC_HASH =
@@ -42,5 +42,22 @@ describe('gen-shared', () => {
       const committed = readFileSync(join(__dirname, '../src/shared/generated', file), 'utf8');
       expect(committed).toBe(content);
     }
+  });
+});
+
+describe('renderReplay', () => {
+  const header =
+    'session_us,timestamp_us,sampleIndex,strideTimeS,swingTimeS,stanceTimeS,strideLengthM,tibialShockG,asymmetryIndex,freezeIndex,edgeai_label,edgeai_confidence';
+
+  it('extracts the replay columns in a fixed order', () => {
+    const out = renderReplay(`${header}\r\n1,2,3,1.4,0.5,0.9,1.0,2.8,0.01,0.4,-1,0\r\n`, 'x.csv');
+    expect(out).toContain('[2, 3, 1.4, 0.5, 0.9, 1, 2.8, 0.01, 0.4],');
+  });
+
+  it('rejects missing columns and non-numeric cells', () => {
+    expect(() => renderReplay('a,b\n1,2', 'x.csv')).toThrow(/missing column timestamp_us/);
+    expect(() =>
+      renderReplay(`${header}\n1,2,3,abc,0.5,0.9,1.0,2.8,0.01,0.4,-1,0`, 'x.csv'),
+    ).toThrow(/bad number in row 1/);
   });
 });

@@ -109,11 +109,54 @@ export function renderFeatures(spec: Json): string {
   );
 }
 
+const REPLAY_COLUMNS = [
+  'timestamp_us',
+  'sampleIndex',
+  'strideTimeS',
+  'swingTimeS',
+  'stanceTimeS',
+  'strideLengthM',
+  'tibialShockG',
+  'asymmetryIndex',
+  'freezeIndex',
+] as const;
+
+/** Firmware stride CSV -> compact replay table (columns in REPLAY_COLUMNS order). */
+export function renderReplay(csvText: string, source: string): string {
+  const lines = csvText.trim().split(/\r?\n/);
+  const header = lines[0]!.split(',').map((h) => h.trim());
+  const idx = REPLAY_COLUMNS.map((c) => {
+    const i = header.indexOf(c);
+    if (i < 0) throw new Error(`${source}: missing column ${c}`);
+    return i;
+  });
+  const rows = lines.slice(1).map((line, n) => {
+    const cells = line.split(',');
+    return idx.map((i) => {
+      const v = Number(cells[i]);
+      if (!Number.isFinite(v)) throw new Error(`${source}: bad number in row ${n + 1}`);
+      return v;
+    });
+  });
+  return (
+    HEADER +
+    `/** Source: ${source} (${rows.length} strides, left ankle, healthy adult). */\n` +
+    `export const REPLAY_0007_COLUMNS = ${lit(REPLAY_COLUMNS)} as const;\n\n` +
+    `export const REPLAY_0007_ROWS: readonly (readonly number[])[] = [\n` +
+    rows.map((r) => `  [${r.join(', ')}],`).join('\n') +
+    `\n];\n`
+  );
+}
+
+const REPLAY_SOURCE = 'data/reference/session_0007/S_L_0007.CSV';
+
 export function renderAll(): Record<string, string> {
+  const replayCsv = readFileSync(resolve(APP_ROOT, '..', REPLAY_SOURCE), 'utf8');
   return {
     'gatt.ts': renderGatt(load('gatt_spec')),
     'labels.ts': renderLabels(load('label_catalog')),
     'features.ts': renderFeatures(load('feature_spec')),
+    'replay0007.ts': renderReplay(replayCsv, REPLAY_SOURCE),
   };
 }
 
