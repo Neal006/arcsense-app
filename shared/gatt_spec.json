@@ -1,0 +1,90 @@
+{
+  "$comment": "Single source of truth for the ArcSense GATT contract. Consumed by app/scripts/gen-shared.ts and ml/arcsense_ml/shared.py. Sources: docs/reference/ARC_SENSE_APP_AND_EDGEML_BRIEF.md section 3, docs/reference/ARC_SENSE_FIRMWARE_SPECIFICATION_AND_DATA_FORMATS.md section 5.",
+  "version": "1.0.0",
+  "uuidTemplate": "19B1XXXX-E8F2-537E-4F6C-D104768A1214",
+  "advertisedServiceSuffix": "0000",
+  "deviceNames": { "L": "ArcSense-L", "R": "ArcSense-R" },
+  "roleCodes": { "L": 76, "R": 82 },
+  "bleModes": { "0": "DATA_COLLECTION", "1": "EDGE_AI", "2": "STREAMING" },
+  "services": [
+    {
+      "key": "gait",
+      "suffix": "0000",
+      "characteristics": [
+        { "key": "strideTime", "suffix": "0001", "type": "f32", "unit": "s", "props": ["read", "notify"] },
+        { "key": "swingTime", "suffix": "0002", "type": "f32", "unit": "s", "props": ["read", "notify"] },
+        { "key": "stanceTime", "suffix": "0003", "type": "f32", "unit": "s", "props": ["read", "notify"] },
+        { "key": "strideLength", "suffix": "0004", "type": "f32", "unit": "m", "props": ["read", "notify"] },
+        { "key": "tibialShock", "suffix": "0005", "type": "f32", "unit": "g", "props": ["read", "notify"] },
+        {
+          "key": "asymmetryIndex",
+          "suffix": "0006",
+          "type": "f32",
+          "unit": "fraction",
+          "props": ["read", "notify"],
+          "note": "Brief says percent; S_*.CSV stores a fraction (0..1). Scale is a runtime setting, default fraction. See docs/FINDINGS.md F-02."
+        },
+        { "key": "freezeIndex", "suffix": "0007", "type": "f32", "unit": "ratio", "props": ["read", "notify"] },
+        { "key": "strideCount", "suffix": "0013", "type": "u32", "unit": "count", "props": ["read", "notify"] }
+      ]
+    },
+    {
+      "key": "deviceInfo",
+      "suffix": "0008",
+      "characteristics": [
+        { "key": "deviceRole", "suffix": "0009", "type": "u8", "unit": "ascii", "props": ["read"] },
+        { "key": "bleMode", "suffix": "000A", "type": "u8", "unit": "enum", "props": ["read"] }
+      ]
+    },
+    {
+      "key": "sync",
+      "suffix": "000B",
+      "characteristics": [
+        { "key": "sessionStartTimestamp", "suffix": "000C", "type": "u32", "unit": "us", "props": ["read", "write"] }
+      ]
+    },
+    {
+      "key": "command",
+      "suffix": "0010",
+      "characteristics": [
+        { "key": "syncMarker", "suffix": "0011", "type": "u16", "unit": "token", "props": ["write"] },
+        { "key": "labelMarker", "suffix": "0012", "type": "u16", "unit": "labelId", "props": ["write"] }
+      ]
+    },
+    {
+      "key": "edgeAi",
+      "suffix": "000D",
+      "characteristics": [
+        {
+          "key": "aiLabel",
+          "suffix": "000E",
+          "type": "u8",
+          "unit": "classIndex",
+          "props": ["read", "notify"],
+          "note": "Declared int8 in the brief but uses 255 as 'no inference'; S_*.CSV writes -1. Both decode to null."
+        },
+        { "key": "aiConfidence", "suffix": "000F", "type": "f32", "unit": "probability", "props": ["read", "notify"] }
+      ]
+    }
+  ],
+  "telemetryPacket": {
+    "$comment": "BleGaitTelemetryPacket from the firmware spec section 5. Characteristic UUID is NOT documented; suffix stays null until the firmware team confirms. Spec says 20 bytes, which matches natural C alignment (1 pad byte after cadenceSpm). A 19-byte packed variant is also accepted.",
+    "suffix": null,
+    "status": "unconfirmed",
+    "alignedSize": 20,
+    "packedSize": 19,
+    "fields": [
+      { "key": "strideCount", "type": "u16", "alignedOffset": 0, "packedOffset": 0, "scale": 1 },
+      { "key": "cadenceSpm", "type": "u8", "alignedOffset": 2, "packedOffset": 2, "scale": 1 },
+      { "key": "strideLengthCm", "type": "u16", "alignedOffset": 4, "packedOffset": 3, "scale": 0.01, "to": "strideLengthM" },
+      { "key": "strideTimeMs", "type": "u16", "alignedOffset": 6, "packedOffset": 5, "scale": 0.001, "to": "strideTimeS" },
+      { "key": "swingTimeMs", "type": "u16", "alignedOffset": 8, "packedOffset": 7, "scale": 0.001, "to": "swingTimeS" },
+      { "key": "stanceTimeMs", "type": "u16", "alignedOffset": 10, "packedOffset": 9, "scale": 0.001, "to": "stanceTimeS" },
+      { "key": "tibialShockCg", "type": "u16", "alignedOffset": 12, "packedOffset": 11, "scale": 0.01, "to": "tibialShockG" },
+      { "key": "asymmetryPercentX10", "type": "u16", "alignedOffset": 14, "packedOffset": 13, "scale": 0.001, "to": "asymmetryFraction" },
+      { "key": "freezeIndexX100", "type": "u16", "alignedOffset": 16, "packedOffset": 15, "scale": 0.01, "to": "freezeIndex" },
+      { "key": "batteryPct", "type": "u8", "alignedOffset": 18, "packedOffset": 17, "scale": 1 },
+      { "key": "systemStatus", "type": "u8", "alignedOffset": 19, "packedOffset": 18, "scale": 1 }
+    ]
+  }
+}

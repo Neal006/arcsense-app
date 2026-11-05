@@ -1,0 +1,36 @@
+# OS / editors
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Node / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+app/android/
+app/ios/
+*.jks
+*.keystore
+!debug.keystore
+*.p8
+*.p12
+*.mobileprovision
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build / test outputs
+reports/
+coverage/
+ml/artifacts/
+ml/runs/

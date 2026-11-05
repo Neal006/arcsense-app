@@ -1,0 +1,24 @@
+{
+  "$comment": "Per-stride classifier input. Order is the model input order and must never change without bumping version (the app refuses models whose featureSpecHash does not match). Sources are S_*.CSV column names. asymmetryIndex is the FIRMWARE value (fraction), not the app's bilateral value, so firmware and phone see identical inputs.",
+  "version": "1.0.0",
+  "features": [
+    { "key": "strideTimeS", "source": "strideTimeS" },
+    { "key": "swingTimeS", "source": "swingTimeS" },
+    { "key": "stanceTimeS", "source": "stanceTimeS" },
+    { "key": "strideLengthM", "source": "strideLengthM" },
+    { "key": "tibialShockG", "source": "tibialShockG" },
+    { "key": "asymmetryIndex", "source": "asymmetryIndex" },
+    { "key": "freezeIndex", "source": "freezeIndex" },
+    { "key": "cadenceSpm", "derived": "120 / strideTimeS" },
+    { "key": "swingRatio", "derived": "swingTimeS / strideTimeS" },
+    { "key": "stanceRatio", "derived": "stanceTimeS / strideTimeS" }
+  ],
+  "classes": ["Normal", "Freezing", "Shuffling", "Limping"],
+  "noInferenceLabel": 255,
+  "freezeOverride": {
+    "$comment": "Freezing is decided by the Freeze Index rule, not by the model, per brief section 7.4. Defaults are overridable in app settings.",
+    "classIndex": 1,
+    "threshold": 3.0,
+    "consecutiveStrides": 2
+  }
+}

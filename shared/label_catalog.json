@@ -1,0 +1,22 @@
+{
+  "$comment": "Ground-truth annotation labels. IDs are written as uint16 to the Label Marker characteristic and recorded in the app marker log. IDs are permanent: never renumber, only append. PROPOSED - to be confirmed with the trial team before data collection.",
+  "version": "1.0.0",
+  "voidId": 99,
+  "labels": [
+    { "id": 1, "key": "trialNormalStart", "name": "Normal walk", "kind": "start", "pairId": 2, "group": "trial", "trainingClass": "Normal" },
+    { "id": 2, "key": "trialNormalEnd", "name": "Normal walk", "kind": "end", "pairId": 1, "group": "trial" },
+    { "id": 3, "key": "trialShufflingStart", "name": "Shuffling", "kind": "start", "pairId": 4, "group": "trial", "trainingClass": "Shuffling" },
+    { "id": 4, "key": "trialShufflingEnd", "name": "Shuffling", "kind": "end", "pairId": 3, "group": "trial" },
+    { "id": 5, "key": "trialLimpingStart", "name": "Limping", "kind": "start", "pairId": 6, "group": "trial", "trainingClass": "Limping" },
+    { "id": 6, "key": "trialLimpingEnd", "name": "Limping", "kind": "end", "pairId": 5, "group": "trial" },
+    { "id": 7, "key": "fogStart", "name": "FoG episode", "kind": "start", "pairId": 8, "group": "episode", "trainingClass": "Freezing" },
+    { "id": 8, "key": "fogEnd", "name": "FoG episode", "kind": "end", "pairId": 7, "group": "episode" },
+    { "id": 10, "key": "turn", "name": "Turn", "kind": "instant", "group": "event" },
+    { "id": 11, "key": "sitDown", "name": "Sit down", "kind": "instant", "group": "event" },
+    { "id": 12, "key": "standUp", "name": "Stand up", "kind": "instant", "group": "event" },
+    { "id": 13, "key": "stumble", "name": "Stumble / near fall", "kind": "instant", "group": "event" },
+    { "id": 14, "key": "pause", "name": "Pause / standing", "kind": "instant", "group": "event" },
+    { "id": 15, "key": "obstacle", "name": "Doorway / obstacle", "kind": "instant", "group": "event" },
+    { "id": 99, "key": "void", "name": "Void previous label", "kind": "void", "group": "control" }
+  ]
+}

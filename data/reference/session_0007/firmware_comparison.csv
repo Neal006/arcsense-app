@@ -1,0 +1,11 @@
+check,device_rows,offline_rows,status,matched_within_150ms,mean_abs_delta_ms,compared_rows,mean_firmware_minus_offline,mae
+firmware_event_rows,217,210,COMPARE_BY_TYPE_AND_SAMPLE_INDEX,,,,,
+events:MID_SWING,55,53,REVIEW,16,10.624999999997886,,,
+events:TOE_OFF,54,52,REVIEW,16,16.874999999996643,,,
+events:HEEL_STRIKE,54,53,REVIEW,32,101.24999999997986,,,
+events:MID_STANCE,54,52,REVIEW,12,94.99999999998109,,,
+firmware_stride_rows,54,52,COMPARE_PARAMETERS,,,,,
+parameter:strideTimeS,,,OK,,,52,0.013768329326923009,0.04560288461538483
+parameter:stanceTimeS,,,OK,,,52,0.705441045673077,0.705441045673077
+parameter:swingTimeS,,,OK,,,52,-0.6916669471153848,0.6916669471153848
+parameter:strideLengthM,,,OK,,,51,0.3838213620725634,0.42816802060101194
