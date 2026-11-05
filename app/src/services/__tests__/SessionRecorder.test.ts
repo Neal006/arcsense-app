@@ -166,11 +166,13 @@ describe('SessionRecorder', () => {
     expect(repo.getRuns('S1').map((r) => r.run)).toEqual([0, 1]);
     expect(second.rec.labels().isOpen(3)).toBe(true);
     const tokens = repo.getTokens('S1');
-    expect(tokens.map((t) => [t.seq, t.token, t.run])).toEqual([
-      [0, 0xaa01, 0],
-      [1, 0xaa02, 0],
-      [2, 0xaa03, 1],
+    expect(tokens.map((t) => [t.seq, t.token, t.run, t.reason])).toEqual([
+      [0, 0xaa01, 0, 'start'],
+      [1, 0xaa02, 0, 'periodic'],
+      [2, 0xaa03, 1, 'resume'],
     ]);
+    // Session Start is written once per session, never on resume
+    expect(second.transport.writes.some((w) => w.key === 'sessionStartTimestamp')).toBe(false);
     // Session clock bridges the restart using wall time: 65 s recorded before the
     // kill, 20 s while the app was dead, 200 ms reconnecting both ankles (100 ms each).
     expect(second.rec.elapsedMs()).toBe(65_000 + 20_000 + 200);

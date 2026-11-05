@@ -1,0 +1,7 @@
+seq,run,label_id,key,name,kind,group,session_ms,wall_iso,l_status,l_dispatch_session_ms,l_write_mode,l_error,r_status,r_dispatch_session_ms,r_write_mode,r_error,delivered,voided,voids_seq,auto_closed
+0,0,1,trialNormalStart,Normal walk,start,trial,5000,2026-11-09T10:00:05.100Z,sent,5000,without-response,,sent,5000,without-response,,1,0,,0
+1,0,7,fogStart,FoG episode,start,episode,35000,2026-11-09T10:00:35.100Z,sent,35000,without-response,,sent,35000,without-response,,1,0,,0
+2,0,8,fogEnd,FoG episode,end,episode,39000,2026-11-09T10:00:39.100Z,sent,39000,without-response,,sent,39000,without-response,,1,0,,0
+3,1,10,turn,Turn,instant,event,94100,2026-11-09T10:01:34.200Z,sent,94100,without-response,,sent,94100,without-response,,1,1,,0
+4,1,99,void,Void previous label,void,control,94100,2026-11-09T10:01:34.200Z,sent,94100,without-response,,sent,94100,without-response,,1,0,3,0
+5,1,2,trialNormalEnd,Normal walk,end,trial,94100,2026-11-09T10:01:34.200Z,sent,94100,without-response,,sent,94100,without-response,,1,0,,1

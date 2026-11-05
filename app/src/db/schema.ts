@@ -55,7 +55,9 @@ export const syncTokens = sqliteTable(
     seq: integer('seq').notNull(),
     run: integer('run').notNull(),
     token: integer('token').notNull(),
-    reason: text('reason', { enum: ['start', 'periodic', 'manual', 'resync', 'stop'] }).notNull(),
+    reason: text('reason', {
+      enum: ['start', 'resume', 'periodic', 'manual', 'resync', 'stop'],
+    }).notNull(),
     t: real('t').notNull(),
     wall: real('wall').notNull(),
     lStatus: text('l_status', { enum: ['sent', 'failed', 'skipped'] }).notNull(),

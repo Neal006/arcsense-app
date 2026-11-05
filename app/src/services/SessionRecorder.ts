@@ -16,7 +16,7 @@ import { LABEL_CATALOG_VERSION } from '@/shared/generated/labels';
 
 import type { DeviceManager } from './DeviceManager';
 import { LabelService } from './LabelService';
-import { DEFAULT_SYNC_INTERVAL_MS, nextToken, SyncService } from './SyncService';
+import { DEFAULT_SYNC_INTERVAL_MS, FIRST_SYNC_TOKEN, nextToken, SyncService } from './SyncService';
 
 export interface SessionMetaInput {
   subjectCode: string;
@@ -239,8 +239,8 @@ export class SessionRecorder {
         this.deps.repo.getLabels(sessionId),
         this.deps.repo.getNotes(sessionId),
       );
-      await this.syncSvc!.start(
-        lastToken === null ? undefined : nextToken(lastToken),
+      await this.syncSvc!.resume(
+        lastToken === null ? FIRST_SYNC_TOKEN : nextToken(lastToken),
         tokens.length,
       );
       this.setState('running');

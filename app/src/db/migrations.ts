@@ -57,7 +57,7 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
       seq INTEGER NOT NULL,
       run INTEGER NOT NULL,
       token INTEGER NOT NULL CHECK (token BETWEEN 1 AND 65535),
-      reason TEXT NOT NULL CHECK (reason IN ('start','periodic','manual','resync','stop')),
+      reason TEXT NOT NULL CHECK (reason IN ('start','resume','periodic','manual','resync','stop')),
       t REAL NOT NULL,
       wall REAL NOT NULL,
       ${side('l').join(',\n      ')},

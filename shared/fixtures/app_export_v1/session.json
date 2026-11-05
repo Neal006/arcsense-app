@@ -1,0 +1,48 @@
+{
+  "format": "arcsense-session-export",
+  "version": 1,
+  "timebase": "session_ms = ms since session start; monotonic within a run, runs bridged by wall time",
+  "session": {
+    "id": "P001_golden",
+    "subjectCode": "P001",
+    "condition": "Overground, \"fast\", 10 m",
+    "operator": "op",
+    "notes": "",
+    "plannedSides": "LR",
+    "affectedSide": null,
+    "status": "stopped",
+    "createdWall": 1794218400100,
+    "startedWall": 1794218400100,
+    "stoppedWall": 1794218494200,
+    "appVersion": "0.1.0",
+    "gattSpecVersion": "1.0.0",
+    "labelCatalogVersion": "1.0.0",
+    "featureSpecHash": "1a66e940e1be4294e24f6d0b2b16729cfc312a918e320b9eedfcd47fee96bc42",
+    "deviceL": "dev-L",
+    "deviceR": "dev-R",
+    "modeL": "DATA_COLLECTION",
+    "modeR": "DATA_COLLECTION",
+    "sessionStartValue": 1100000,
+    "lastToken": 43525
+  },
+  "runs": [
+    {
+      "sessionId": "P001_golden",
+      "run": 0,
+      "monoAtStart": 1100,
+      "wallAtStart": 1794218400100
+    },
+    {
+      "sessionId": "P001_golden",
+      "run": 1,
+      "monoAtStart": 300,
+      "wallAtStart": 1794218484200
+    }
+  ],
+  "counts": {
+    "syncTokens": 5,
+    "labels": 6,
+    "notes": 1,
+    "connectionEvents": 4
+  }
+}

@@ -187,21 +187,24 @@ describe('SyncService', () => {
     expect(clock.pendingTimers()).toBe(2);
   });
 
-  it('resumes a sequence from a given token (crash recovery)', async () => {
-    const { sync } = await rig();
-    const rec = await sync.start(0xaa2a, 41);
-    expect(rec.token).toBe(0xaa2a);
-    expect(rec.seq).toBe(41);
+  it('resumes a sequence without rewriting Session Start (crash recovery)', async () => {
+    const { sync, transport, clock, tokens } = await rig();
+    const rec = await sync.resume(0xaa2a, 41);
+    expect(rec).toMatchObject({ token: 0xaa2a, seq: 41, reason: 'resume' });
     expect(sync.peekNextToken()).toBe(0xaa2b);
+    expect(sync.getSessionStart()).toBeNull();
+    expect(transport.writes.some((w) => w.key === 'sessionStartTimestamp')).toBe(false);
+    await clock.advanceAsync(60_000);
+    expect(tokens.at(-1)).toMatchObject({ seq: 42, reason: 'periodic' });
   });
 
   it('validates inputs and state', async () => {
     const { sync, dm, clock } = await rig();
     expect(() => new SyncService(dm, clock, 500)).toThrow(RangeError);
     await expect(sync.manualSync()).rejects.toThrow(/not running/);
-    await expect(sync.start(0)).rejects.toThrow(RangeError);
-    await expect(sync.start(0x10000)).rejects.toThrow(RangeError);
-    await expect(sync.start(0xaa01, -1)).rejects.toThrow(RangeError);
+    await expect(sync.resume(0, 0)).rejects.toThrow(RangeError);
+    await expect(sync.resume(0x10000, 0)).rejects.toThrow(RangeError);
+    await expect(sync.resume(0xaa01, -1)).rejects.toThrow(RangeError);
     await sync.start();
     await expect(sync.start()).rejects.toThrow(/already running/);
   });

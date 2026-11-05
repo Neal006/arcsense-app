@@ -1,0 +1,5 @@
+idx,run,session_ms,wall_iso,type,side,device_id,detail
+0,0,39000,2026-11-09T10:00:39.100Z,link_lost,R,dev-R,out of range
+1,0,39000,2026-11-09T10:00:39.100Z,reconnect_scheduled,R,dev-R,attempt 1 in 1000 ms
+2,0,40000,2026-11-09T10:00:40.100Z,connecting,R,dev-R,attempt 1
+3,0,40050,2026-11-09T10:00:40.150Z,ready,R,dev-R,mode=DATA_COLLECTION

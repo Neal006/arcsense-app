@@ -1,0 +1,6 @@
+seq,run,token,token_hex,reason,session_ms,wall_iso,l_status,l_dispatch_session_ms,l_write_mode,l_error,r_status,r_dispatch_session_ms,r_write_mode,r_error,js_dispatch_skew_ms,partial
+0,0,43521,0xAA01,start,0,2026-11-09T10:00:00.100Z,sent,0,without-response,,sent,0,without-response,,0,0
+1,0,43522,0xAA02,resync,40050,2026-11-09T10:00:40.150Z,sent,40050,without-response,,sent,40050,without-response,,0,0
+2,0,43523,0xAA03,periodic,60000,2026-11-09T10:01:00.100Z,sent,60000,without-response,,sent,60000,without-response,,0,0
+3,1,43524,0xAA04,resume,84100,2026-11-09T10:01:24.200Z,sent,84100,without-response,,sent,84100,without-response,,0,0
+4,1,43525,0xAA05,stop,94100,2026-11-09T10:01:34.200Z,sent,94100,without-response,,sent,94100,without-response,,0,0

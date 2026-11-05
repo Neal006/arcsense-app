@@ -25,7 +25,7 @@ export type { SideWrite };
 export const FIRST_SYNC_TOKEN = 0xaa01;
 export const DEFAULT_SYNC_INTERVAL_MS = 60_000;
 
-export type SyncReason = 'start' | 'periodic' | 'manual' | 'resync' | 'stop';
+export type SyncReason = 'start' | 'resume' | 'periodic' | 'manual' | 'resync' | 'stop';
 
 export interface SyncTokenRecord {
   seq: number;
@@ -98,16 +98,32 @@ export class SyncService {
 
   /**
    * Begin a session: write Session Start Timestamp (F-13: semantics to be
-   * confirmed by firmware), then the first token, then every interval.
-   * `firstToken`/`firstSeq` let a resumed session continue its sequence (F28).
+   * confirmed by firmware), then token 0xAA01, then every interval.
    */
-  async start(firstToken = FIRST_SYNC_TOKEN, firstSeq = 0): Promise<SyncTokenRecord> {
+  async start(): Promise<SyncTokenRecord> {
+    this.begin(FIRST_SYNC_TOKEN, 0);
+    this.sessionStart = await this.writeSessionStart();
+    return this.enqueue('start');
+  }
+
+  /**
+   * Continue an existing session's sequence after an app restart (F28). Does
+   * NOT rewrite Session Start Timestamp: if the firmware opens a new SD file on
+   * that write, a crash recovery must not split the recording.
+   */
+  async resume(firstToken: number, firstSeq: number): Promise<SyncTokenRecord> {
+    this.begin(firstToken, firstSeq);
+    return this.enqueue('resume');
+  }
+
+  private begin(firstToken: number, firstSeq: number): void {
     if (this.isRunning) throw new Error('sync already running');
     if (!Number.isInteger(firstToken) || firstToken < 1 || firstToken > 0xffff) {
       throw new RangeError(`invalid first token ${firstToken}`);
     }
-    if (!Number.isInteger(firstSeq) || firstSeq < 0)
+    if (!Number.isInteger(firstSeq) || firstSeq < 0) {
       throw new RangeError(`invalid first seq ${firstSeq}`);
+    }
     this.isRunning = true;
     this.token = firstToken;
     this.seqBase = firstSeq;
@@ -115,8 +131,6 @@ export class SyncService {
     this.readyOff = this.dm.on('ready', () => {
       if (this.isRunning) void this.enqueue('resync');
     });
-    this.sessionStart = await this.writeSessionStart();
-    return this.enqueue('start');
   }
 
   async manualSync(): Promise<SyncTokenRecord> {
@@ -176,8 +190,9 @@ export class SyncService {
     this.emitter.emit('token', rec);
     // Fixed grid: start/manual set the base; periodic ticks advance it exactly
     // one interval (no accumulation of write latency); resyncs leave it alone.
-    if (reason === 'start' || reason === 'manual') this.nextDue = t + this.intervalMs;
-    else if (reason === 'periodic') this.nextDue += this.intervalMs;
+    if (reason === 'start' || reason === 'resume' || reason === 'manual') {
+      this.nextDue = t + this.intervalMs;
+    } else if (reason === 'periodic') this.nextDue += this.intervalMs;
     if (this.isRunning && reason !== 'stop' && reason !== 'resync') this.schedule();
     return rec;
   }
