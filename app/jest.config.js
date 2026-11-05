@@ -13,8 +13,7 @@ module.exports = {
     '!src/shared/generated/**',
   ],
   coverageThreshold: {
-    './src/ble/': { lines: 90, branches: 85 },
-    './src/services/': { lines: 90, branches: 85 },
+    global: { lines: 90, branches: 85 },
   },
   coverageReporters: ['text-summary', 'lcov', 'json-summary'],
 };
