@@ -10,11 +10,11 @@ module.exports = {
     'src/**/*.{ts,tsx}',
     '!src/**/__tests__/**',
     '!src/app/**',
+    '!src/state/bootstrap.ts',
     '!src/shared/generated/**',
     '!src/testing/**',
     '!src/db/open.ts',
     '!src/export/share.ts',
-    '!src/ble/permissions.ts',
   ],
   coverageThreshold: {
     global: { lines: 90, branches: 85 },
