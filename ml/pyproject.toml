@@ -18,6 +18,7 @@ train = [
 arcsense-qa = "arcsense_ml.cli:qa_main"
 arcsense-align = "arcsense_ml.cli:align_main"
 arcsense-bin2csv = "arcsense_ml.cli:bin2csv_main"
+arcsense-train = "arcsense_ml.train_cli:main"
 
 [dependency-groups]
 dev = [
@@ -37,7 +38,7 @@ packages = ["arcsense_ml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -p no:cacheprovider"
 markers = [
     "train: requires the [train] extra (tensorflow, scikit-learn)",
 ]
