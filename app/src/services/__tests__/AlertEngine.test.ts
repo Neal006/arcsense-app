@@ -6,6 +6,7 @@ import {
   AlertEngine,
   DEFAULT_ALERT_SETTINGS,
   validateAlertSettings,
+  watchFreezeOnset,
   type AlertEpisode,
 } from '../AlertEngine';
 import type { Stride } from '../StrideAssembler';
@@ -142,5 +143,22 @@ describe('AlertEngine', () => {
     eng.updateSettings({ ...DEFAULT_ALERT_SETTINGS, fiConsecutive: 1 });
     eng.onStride(stride('L', { freezeIndex: 3 }));
     expect(eng.isActive('freezing', 'L')).toBe(true);
+  });
+
+  it('watchFreezeOnset fires once per onset per ankle, not on unrelated changes', () => {
+    const { eng } = setup();
+    const onsets: string[] = [];
+    const off = watchFreezeOnset(eng, (side) => onsets.push(side));
+    eng.onStride(stride('L', { freezeIndex: 4 }));
+    eng.onStride(stride('L', { freezeIndex: 4 }));
+    eng.onStride(stride('L', { freezeIndex: 4, asymmetryIndex: 0.3 })); // another alert changes
+    eng.onStride(stride('R', { freezeIndex: 4 }));
+    eng.onStride(stride('R', { freezeIndex: 4 }));
+    expect(onsets).toEqual(['L', 'R']);
+    eng.closeAll();
+    eng.onStride(stride('L', { freezeIndex: 4 }));
+    eng.onStride(stride('L', { freezeIndex: 4 }));
+    expect(onsets).toEqual(['L', 'R', 'L']);
+    off();
   });
 });

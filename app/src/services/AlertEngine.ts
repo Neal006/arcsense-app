@@ -184,3 +184,13 @@ export class AlertEngine {
     this.emitter.emit('episode', { ...cur, until: this.clock.now() });
   }
 }
+
+/** Call `cb` once each time a freezing alert starts on an ankle (for haptics/sound). */
+export function watchFreezeOnset(engine: AlertEngine, cb: (side: Side) => void): Unsubscribe {
+  let active = new Set<Side>();
+  return engine.on('changed', (alerts) => {
+    const now = new Set(alerts.filter((a) => a.kind === 'freezing').map((a) => a.side));
+    for (const side of now) if (!active.has(side)) cb(side);
+    active = now;
+  });
+}

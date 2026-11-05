@@ -83,6 +83,7 @@ export function Banner({
   return (
     <View
       testID={testID}
+      accessible
       accessibilityRole="alert"
       style={[styles.banner, { borderColor: colors[tone] }]}
     >

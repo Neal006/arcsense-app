@@ -12,6 +12,7 @@ import { systemClock, type Clock } from '@/core/clock';
 import { openRepository } from '@/db/open';
 import type { SessionRepository } from '@/db/SessionRepository';
 import { DeviceManager } from '@/services/DeviceManager';
+import { GaitAcquisition } from '@/services/GaitAcquisition';
 import { SessionRecorder } from '@/services/SessionRecorder';
 
 export type TransportMode = 'ble' | 'replay';
@@ -23,6 +24,7 @@ export interface Services {
   dm: DeviceManager;
   repo: SessionRepository;
   recorder: SessionRecorder;
+  acquisition: GaitAcquisition;
 }
 
 export function replayTransport(clock: Clock): MockTransport {
@@ -51,5 +53,7 @@ export function createServices(
   const repo = deps.repo ?? openRepository();
   const dm = new DeviceManager(transport, clock);
   const recorder = new SessionRecorder({ dm, repo, clock, appVersion });
-  return { mode, clock, transport, dm, repo, recorder };
+  const acquisition = new GaitAcquisition(dm, clock);
+  acquisition.start();
+  return { mode, clock, transport, dm, repo, recorder, acquisition };
 }

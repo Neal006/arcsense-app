@@ -10,9 +10,13 @@ import type { SessionRow } from '@/db/SessionRepository';
 import type { ConnectionEvent, DiscoveredDevice, SideLink } from '@/services/DeviceManager';
 import type { LabelRecord, NoteRecord } from '@/services/LabelService';
 import type { RecorderState } from '@/services/SessionRecorder';
+import type { ActiveAlert } from '@/services/AlertEngine';
+import type { BilateralPair } from '@/services/GaitAcquisition';
+import type { Stride } from '@/services/StrideAssembler';
 import type { SyncTokenRecord } from '@/services/SyncService';
 
 export const EVENT_LOG_LIMIT = 200;
+export const TREND_LIMIT = 40;
 
 export interface AppState {
   adapter: AdapterState;
@@ -26,6 +30,10 @@ export interface AppState {
   labels: LabelRecord[];
   openEpisodeIds: number[];
   notes: NoteRecord[];
+  recent: Record<Side, Stride[]>;
+  lastPair: BilateralPair | null;
+  asymmetryTrend: number[];
+  alerts: ActiveAlert[];
 }
 
 export function initialState(): AppState {
@@ -52,6 +60,10 @@ export function initialState(): AppState {
     labels: [],
     openEpisodeIds: [],
     notes: [],
+    recent: { L: [], R: [] },
+    lastPair: null,
+    asymmetryTrend: [],
+    alerts: [],
   };
 }
 

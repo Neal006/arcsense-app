@@ -17,7 +17,7 @@ export function makeHarness(opts: { repo?: SessionRepository; mode?: 'replay' | 
   const repo = opts.repo ?? new SessionRepository(openTestDb().db);
   const services: Services = createServices('replay', '0.1.0', { clock, repo });
   if (opts.mode === 'ble') (services as { mode: string }).mode = 'ble';
-  const unbind = bindServices(services.dm, services.recorder);
+  const unbind = bindServices(services.dm, services.recorder, undefined, services.acquisition);
   const wrapper = ({ children }: { children: ReactNode }) => (
     <ServicesProvider services={services}>{children}</ServicesProvider>
   );

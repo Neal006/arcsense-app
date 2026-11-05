@@ -26,6 +26,6 @@ export function setConfiguredMode(mode: TransportMode): void {
 export function getAppServices(): Services {
   if (services) return services;
   services = createServices(configuredMode(), Constants.expoConfig?.version ?? '0.0.0');
-  bindServices(services.dm, services.recorder);
+  bindServices(services.dm, services.recorder, undefined, services.acquisition);
   return services;
 }

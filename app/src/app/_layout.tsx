@@ -1,11 +1,18 @@
+import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router/js-tabs';
 import { StatusBar } from 'expo-status-bar';
 
+import { watchFreezeOnset } from '@/services/AlertEngine';
 import { getAppServices } from '@/state/bootstrap';
 import { ServicesProvider } from '@/state/ServicesContext';
 import { colors } from '@/ui/theme';
 
 const services = getAppServices();
+
+// Haptic warning when a freezing episode starts, whatever screen is open.
+watchFreezeOnset(services.acquisition.alerts, () => {
+  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+});
 
 export default function RootLayout() {
   return (
@@ -22,6 +29,8 @@ export default function RootLayout() {
       >
         <Tabs.Screen name="index" options={{ title: 'Connect' }} />
         <Tabs.Screen name="session" options={{ title: 'Session' }} />
+        <Tabs.Screen name="dashboard" options={{ title: 'Live' }} />
+        <Tabs.Screen name="bilateral" options={{ title: 'L vs R' }} />
         <Tabs.Screen name="history" options={{ title: 'History' }} />
         <Tabs.Screen name="debug" options={{ title: 'Debug' }} />
       </Tabs>

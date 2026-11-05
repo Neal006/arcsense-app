@@ -1,9 +1,10 @@
 /** Wire service events into the store. Returns a function that unbinds everything. */
 import type { Unsubscribe } from '@/core/emitter';
 import type { DeviceManager } from '@/services/DeviceManager';
+import type { GaitAcquisition } from '@/services/GaitAcquisition';
 import type { SessionRecorder } from '@/services/SessionRecorder';
 
-import { EVENT_LOG_LIMIT, useAppStore, type AppState } from './store';
+import { EVENT_LOG_LIMIT, TREND_LIMIT, useAppStore, type AppState } from './store';
 
 type StoreApi = { setState: (p: Partial<AppState>) => void; getState: () => AppState };
 
@@ -11,8 +12,27 @@ export function bindServices(
   dm: DeviceManager,
   recorder: SessionRecorder,
   store: StoreApi = useAppStore,
+  acquisition?: GaitAcquisition,
 ): Unsubscribe {
   const offs: Unsubscribe[] = [];
+  if (acquisition) {
+    offs.push(
+      acquisition.on('stride', (s) =>
+        store.setState({
+          recent: { ...store.getState().recent, [s.side]: [...acquisition.recent(s.side)] },
+        }),
+      ),
+      acquisition.on('pair', (p) => {
+        const a = p.asymmetryPct.swingTime ?? p.asymmetryPct.strideTime;
+        const trend =
+          a === undefined
+            ? store.getState().asymmetryTrend
+            : [...store.getState().asymmetryTrend, a].slice(-TREND_LIMIT);
+        store.setState({ lastPair: p, asymmetryTrend: trend });
+      }),
+      acquisition.alerts.on('changed', (alerts) => store.setState({ alerts: [...alerts] })),
+    );
+  }
   let sessionOffs: Unsubscribe[] = [];
 
   store.setState({
