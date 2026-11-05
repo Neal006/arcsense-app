@@ -39,8 +39,28 @@ def feature_spec() -> dict[str, Any]:
     return _load("feature_spec")
 
 
+def _assert_portable(obj: Any) -> None:
+    """Reject floats: Python prints ``3.0`` where JavaScript prints ``3``."""
+    if isinstance(obj, bool) or obj is None or isinstance(obj, (str, int)):
+        return
+    if isinstance(obj, list):
+        for v in obj:
+            _assert_portable(v)
+        return
+    if isinstance(obj, dict):
+        for v in obj.values():
+            _assert_portable(v)
+        return
+    raise TypeError(f"canonical_json: {type(obj).__name__} value {obj!r} is not portable")
+
+
 def canonical_json(obj: Any) -> str:
-    """Deterministic JSON: sorted keys, no whitespace, UTF-8 (non-ASCII kept)."""
+    """Deterministic JSON identical to ``app/scripts/canonical.ts``.
+
+    Sorted keys, no whitespace, UTF-8 (non-ASCII kept). Only strings, booleans,
+    null, integers, lists and dicts are allowed.
+    """
+    _assert_portable(obj)
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 

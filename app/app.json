@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "ARC SENSE",
+    "slug": "arcsense",
+    "scheme": "arcsense",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.arcsense.app"
+    },
+    "android": {
+      "package": "com.arcsense.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0F14",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-sharing",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "neverForLocation": true,
+          "modes": ["central"],
+          "bluetoothAlwaysPermission": "ARC SENSE connects to your ArcSense ankle sensors over Bluetooth to record gait sessions."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

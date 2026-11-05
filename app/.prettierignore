@@ -1,0 +1,5 @@
+src/shared/generated/
+android/
+ios/
+coverage/
+.expo/

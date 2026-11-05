@@ -123,3 +123,8 @@ def test_feature_spec_hash_ignores_runtime_thresholds() -> None:
 
 def test_canonical_json_is_order_independent() -> None:
     assert shared.canonical_json({"b": 1, "a": [1, "é"]}) == '{"a":[1,"é"],"b":1}'
+
+
+def test_canonical_json_rejects_floats() -> None:
+    with pytest.raises(TypeError, match="not portable"):
+        shared.canonical_json({"t": 3.5})
