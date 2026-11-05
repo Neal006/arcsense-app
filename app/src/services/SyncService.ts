@@ -14,24 +14,18 @@
  * event, so the radio-level skew is up to one connection interval (FINDINGS
  * F-06). `jsDispatchSkewMs` records only the part the app controls.
  */
-import { SIDES, type Side } from '@/ble/gatt';
 import type { Clock, TimerHandle } from '@/core/clock';
 import { Emitter, type Unsubscribe } from '@/core/emitter';
 
+import { deliveredToBoth, writeBoth, type BilateralWrite, type SideWrite } from './bilateralWrite';
 import type { DeviceManager } from './DeviceManager';
+
+export type { SideWrite };
 
 export const FIRST_SYNC_TOKEN = 0xaa01;
 export const DEFAULT_SYNC_INTERVAL_MS = 60_000;
 
 export type SyncReason = 'start' | 'periodic' | 'manual' | 'resync' | 'stop';
-
-export interface SideWrite {
-  status: 'sent' | 'failed' | 'skipped';
-  /** Phone monotonic ms immediately before the write was handed to the BLE stack. */
-  dispatchT: number | null;
-  writeMode: 'without-response' | 'with-response' | null;
-  error: string | null;
-}
 
 export interface SyncTokenRecord {
   seq: number;
@@ -39,7 +33,7 @@ export interface SyncTokenRecord {
   reason: SyncReason;
   t: number;
   wall: number;
-  sides: Record<Side, SideWrite>;
+  sides: BilateralWrite;
   /** |dispatchT(R) - dispatchT(L)| when both were sent; app-side component only. */
   jsDispatchSkewMs: number | null;
   /** Not delivered to both ankles. */
@@ -51,7 +45,7 @@ export interface SessionStartRecord {
   value: number;
   t: number;
   wall: number;
-  sides: Record<Side, SideWrite>;
+  sides: BilateralWrite;
 }
 
 /** Next token after `token`: increments, wraps 0xFFFF -> 0x0001, never 0 (0 = no marker). */
@@ -145,7 +139,7 @@ export class SyncService {
   private async writeSessionStart(): Promise<SessionStartRecord> {
     const t = this.clock.now();
     const value = Math.floor(t * 1000) % 2 ** 32;
-    const sides = await this.writeBoth('sessionStartTimestamp', value, false);
+    const sides = await writeBoth(this.dm, this.clock, 'sessionStartTimestamp', value, false);
     return { value, t, wall: this.clock.wallNow(), sides };
   }
 
@@ -160,7 +154,7 @@ export class SyncService {
     const token = this.token;
     this.token = nextToken(token);
     const t = this.clock.now();
-    const sides = await this.writeBoth('syncMarker', token, true);
+    const sides = await writeBoth(this.dm, this.clock, 'syncMarker', token, true);
     const l = sides.L.dispatchT;
     const r = sides.R.dispatchT;
     const rec: SyncTokenRecord = {
@@ -171,7 +165,7 @@ export class SyncService {
       wall: this.clock.wallNow(),
       sides,
       jsDispatchSkewMs: l !== null && r !== null ? Math.abs(r - l) : null,
-      partial: SIDES.some((s) => sides[s].status !== 'sent'),
+      partial: !deliveredToBoth(sides),
     };
     this.tokens.push(rec);
     this.emitter.emit('token', rec);
@@ -181,53 +175,6 @@ export class SyncService {
     else if (reason === 'periodic') this.nextDue += this.intervalMs;
     if (this.isRunning && reason !== 'stop' && reason !== 'resync') this.schedule();
     return rec;
-  }
-
-  /**
-   * Dispatch to both ready sides in the same JS turn (no await between the two
-   * calls), then wait for both results.
-   */
-  private async writeBoth(
-    key: 'syncMarker' | 'sessionStartTimestamp',
-    value: number,
-    fast: boolean,
-  ): Promise<Record<Side, SideWrite>> {
-    const pending = SIDES.map((side) => {
-      if (!this.dm.isReady(side)) return null;
-      const dispatchT = this.clock.now();
-      const p = fast
-        ? this.dm.writeFast(side, key, value)
-        : this.dm.write(side, key, value, true).then(() => 'with-response' as const);
-      return { dispatchT, p };
-    });
-    const settled = await Promise.all(
-      pending.map((x) =>
-        x
-          ? x.p.then(
-              (mode) => ({ ok: true as const, mode }),
-              (e: unknown) => ({ ok: false as const, e }),
-            )
-          : null,
-      ),
-    );
-    const out = {} as Record<Side, SideWrite>;
-    SIDES.forEach((side, i) => {
-      const p = pending[i];
-      const res = settled[i];
-      if (!p || !res) {
-        out[side] = { status: 'skipped', dispatchT: null, writeMode: null, error: 'not connected' };
-      } else if (res.ok) {
-        out[side] = { status: 'sent', dispatchT: p.dispatchT, writeMode: res.mode, error: null };
-      } else {
-        out[side] = {
-          status: 'failed',
-          dispatchT: p.dispatchT,
-          writeMode: null,
-          error: res.e instanceof Error ? res.e.message : String(res.e),
-        };
-      }
-    });
-    return out;
   }
 
   private schedule(): void {
