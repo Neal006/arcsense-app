@@ -56,6 +56,8 @@ export interface CharCheck {
   present: boolean;
   /** Required properties the device does not advertise for this characteristic. */
   missingProps: string[];
+  /** Device accepts write-without-response (lowest latency) on this characteristic. */
+  writableWithoutResponse: boolean;
 }
 
 export interface GattReport {
@@ -85,9 +87,21 @@ export function validateGatt(discovered: DiscoveredCharacteristic[]): GattReport
 
   const checks: CharCheck[] = CHARACTERISTICS.map((spec) => {
     const d = found.get(spec.uuid);
-    if (!d) return { key: spec.key, present: false, missingProps: [...spec.props] };
+    if (!d) {
+      return {
+        key: spec.key,
+        present: false,
+        missingProps: [...spec.props],
+        writableWithoutResponse: false,
+      };
+    }
     const have = propsOf(d);
-    return { key: spec.key, present: true, missingProps: spec.props.filter((p) => !have.has(p)) };
+    return {
+      key: spec.key,
+      present: true,
+      missingProps: spec.props.filter((p) => !have.has(p)),
+      writableWithoutResponse: d.isWritableWithoutResponse,
+    };
   });
 
   const unknown = discovered

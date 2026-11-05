@@ -69,11 +69,22 @@ describe('validateGatt', () => {
     expect(r.gaitCharacteristicsComplete).toBe(false);
   });
 
-  it('accepts write-without-response as satisfying write', () => {
+  it('accepts write-without-response as satisfying write and records it', () => {
     const d = fullDiscovery().map((c) =>
       c.uuid.startsWith('19B10011') ? { ...c, isWritableWithResponse: false } : c,
     );
-    expect(validateGatt(d).sessionControlAvailable).toBe(true);
+    const r = validateGatt(d);
+    expect(r.sessionControlAvailable).toBe(true);
+    expect(r.checks.find((c) => c.key === 'syncMarker')?.writableWithoutResponse).toBe(true);
+  });
+
+  it('records when only write-with-response is supported', () => {
+    const d = fullDiscovery().map((c) =>
+      c.uuid.startsWith('19B10012') ? { ...c, isWritableWithoutResponse: false } : c,
+    );
+    const r = validateGatt(d);
+    expect(r.checks.find((c) => c.key === 'labelMarker')?.writableWithoutResponse).toBe(false);
+    expect(r.sessionControlAvailable).toBe(true);
   });
 
   it('lists unknown characteristics inside our services only', () => {

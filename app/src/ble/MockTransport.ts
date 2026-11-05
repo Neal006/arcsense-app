@@ -59,8 +59,10 @@ export interface VirtualDeviceConfig {
   omit?: readonly CharKey[];
   /** Order in which a stride's values are notified. */
   notifyOrder?: readonly CharKey[];
-  /** Delay before the first stride after subscriptions start (ms, real time). */
+  /** Delay before the first stride after connecting (ms, real time). */
   firstStrideDelayMs?: number;
+  /** Firmware without BLEWriteWithoutResponse on its writable characteristics. */
+  noWriteWithoutResponse?: boolean;
 }
 
 export interface WriteRecord {
@@ -297,7 +299,7 @@ export class MockTransport implements BleTransport {
         isReadable: props.includes('read'),
         isNotifiable: props.includes('notify'),
         isWritableWithResponse: props.includes('write'),
-        isWritableWithoutResponse: props.includes('write'),
+        isWritableWithoutResponse: props.includes('write') && !d.cfg.noWriteWithoutResponse,
       };
     });
   }
@@ -324,6 +326,9 @@ export class MockTransport implements BleTransport {
     const spec = this.specFor(d, charUuid);
     if (!(spec.props as readonly string[]).includes('write')) {
       throw new TransportError(`${spec.key} is not writable`);
+    }
+    if (!withResponse && d.cfg.noWriteWithoutResponse) {
+      throw new TransportError(`${spec.key} does not support write without response`);
     }
     this.writes.push({
       t,

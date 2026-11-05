@@ -550,6 +550,21 @@ export class DeviceManager {
     );
   }
 
+  /**
+   * Lowest-latency write: write-without-response when the device supports it on
+   * this characteristic, otherwise write-with-response. Resolves with the mode used.
+   */
+  async writeFast(
+    side: Side,
+    key: CharKey,
+    value: number,
+  ): Promise<'without-response' | 'with-response'> {
+    const check = this.links[side].gatt?.checks.find((c) => c.key === key);
+    const withoutResponse = check?.writableWithoutResponse ?? false;
+    await this.write(side, key, value, !withoutResponse);
+    return withoutResponse ? 'without-response' : 'with-response';
+  }
+
   async readRssi(side: Side): Promise<number> {
     return this.transport.readRssi(this.requireReady(side));
   }
