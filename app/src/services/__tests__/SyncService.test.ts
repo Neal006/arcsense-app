@@ -189,8 +189,9 @@ describe('SyncService', () => {
 
   it('resumes a sequence from a given token (crash recovery)', async () => {
     const { sync } = await rig();
-    const rec = await sync.start(0xaa2a);
+    const rec = await sync.start(0xaa2a, 41);
     expect(rec.token).toBe(0xaa2a);
+    expect(rec.seq).toBe(41);
     expect(sync.peekNextToken()).toBe(0xaa2b);
   });
 
@@ -200,6 +201,7 @@ describe('SyncService', () => {
     await expect(sync.manualSync()).rejects.toThrow(/not running/);
     await expect(sync.start(0)).rejects.toThrow(RangeError);
     await expect(sync.start(0x10000)).rejects.toThrow(RangeError);
+    await expect(sync.start(0xaa01, -1)).rejects.toThrow(RangeError);
     await sync.start();
     await expect(sync.start()).rejects.toThrow(/already running/);
   });

@@ -69,6 +69,8 @@ export class SyncService {
   private sessionStart: SessionStartRecord | null = null;
   /** Monotonic time of the next periodic token. */
   private nextDue = 0;
+  /** seq of the first token of this run (non-zero when resuming a session). */
+  private seqBase = 0;
 
   constructor(
     private readonly dm: DeviceManager,
@@ -97,15 +99,18 @@ export class SyncService {
   /**
    * Begin a session: write Session Start Timestamp (F-13: semantics to be
    * confirmed by firmware), then the first token, then every interval.
-   * `firstToken` lets a resumed session continue its sequence (F28).
+   * `firstToken`/`firstSeq` let a resumed session continue its sequence (F28).
    */
-  async start(firstToken = FIRST_SYNC_TOKEN): Promise<SyncTokenRecord> {
+  async start(firstToken = FIRST_SYNC_TOKEN, firstSeq = 0): Promise<SyncTokenRecord> {
     if (this.isRunning) throw new Error('sync already running');
     if (!Number.isInteger(firstToken) || firstToken < 1 || firstToken > 0xffff) {
       throw new RangeError(`invalid first token ${firstToken}`);
     }
+    if (!Number.isInteger(firstSeq) || firstSeq < 0)
+      throw new RangeError(`invalid first seq ${firstSeq}`);
     this.isRunning = true;
     this.token = firstToken;
+    this.seqBase = firstSeq;
     this.emitter.emit('running', true);
     this.readyOff = this.dm.on('ready', () => {
       if (this.isRunning) void this.enqueue('resync');
@@ -158,7 +163,7 @@ export class SyncService {
     const l = sides.L.dispatchT;
     const r = sides.R.dispatchT;
     const rec: SyncTokenRecord = {
-      seq: this.tokens.length,
+      seq: this.seqBase + this.tokens.length,
       token,
       reason,
       t,
