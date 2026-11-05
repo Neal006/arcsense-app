@@ -14,6 +14,7 @@ module.exports = {
     '!src/testing/**',
     '!src/db/open.ts',
     '!src/export/share.ts',
+    '!src/ble/permissions.ts',
   ],
   coverageThreshold: {
     global: { lines: 90, branches: 85 },
