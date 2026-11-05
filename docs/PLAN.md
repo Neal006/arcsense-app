@@ -391,3 +391,15 @@ It produces `reports/` containing the coverage HTML, JUnit XML, the ML metrics a
 - Firmware changes. The optional suggestion for a sync timestamp latch in firmware stays only a proposal.
 - Cloud backend, user accounts, or automatic upload of data.
 - Diagnostic claims. The app displays measurements and alerts; it does not diagnose.
+
+---
+
+## 9. Changes made during implementation
+
+| Planned | Built instead | Why |
+|---|---|---|
+| `react-native-fast-tflite` in the app | A pure-TypeScript MLP (`app/src/ml/Mlp.ts`) running the weights exported from the same Keras model (`mlp_weights.json`). | The model has about 400 parameters, so it needs no native module and is fully testable in Jest. Parity is tested against the float `.tflite` outputs on golden vectors. The firmware still gets the int8 `.tflite` / `model_data.h`. |
+| `victory-native` (Skia) charts | View-based bar series (`app/src/ui/MetricBar.tsx`). | At most 40 points at 1 Hz, and no extra native dependency in the build. |
+| Android foreground service (notifee) | The screen is kept awake during a session (`expo-keep-awake`). | The operator holds the phone during trials. A foreground service for screen-off recording is still open (hardware test HT-07). |
+| Sync resumes with reason `start` after a crash | A distinct `resume` reason, and Session Start is not rewritten. | Rewriting Session Start could split the SD recording if the firmware opens a file on that write (F-13). |
+

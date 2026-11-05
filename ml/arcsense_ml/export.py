@@ -7,6 +7,8 @@ Artifacts:
   feature_spec.h       feature order, class names and feature-spec hash
   golden_vectors.h     inputs + expected outputs so the firmware can verify
   golden_vectors.json  the same, for the app's parity test
+  mlp_weights.json     normalisation + dense weights; the app runs this MLP in
+                       TypeScript and is tested to reproduce model.tflite
   model_meta.json      versions, hashes, sizes, checks; the app refuses a model
                        whose featureSpecHash does not match its own
 """
@@ -177,6 +179,38 @@ def golden_vectors_h(g: dict[str, Any]) -> str:
     )
 
 
+KERAS_NORMALIZATION_EPSILON = 1e-7  # keras.backend.epsilon(), used by Normalization
+
+
+def mlp_weights(model: Any, version: str) -> dict[str, Any]:
+    """Weights in a framework-free form: y = softmax(...relu(W x + b)...)."""
+    norm = model.get_layer("normalize")
+    mean = np.asarray(norm.mean, dtype=np.float64).reshape(-1)
+    var = np.asarray(norm.variance, dtype=np.float64).reshape(-1)
+    layers = []
+    for layer in model.layers:
+        if layer.__class__.__name__ != "Dense":
+            continue
+        kernel, bias = layer.get_weights()
+        layers.append(
+            {
+                "kernel": np.asarray(kernel, dtype=np.float64).tolist(),
+                "bias": np.asarray(bias, dtype=np.float64).tolist(),
+                "activation": layer.get_config()["activation"],
+            }
+        )
+    return {
+        "version": version,
+        "featureSpecHash": feature_spec_hash(),
+        "normalization": {
+            "mean": mean.tolist(),
+            "variance": var.tolist(),
+            "epsilon": KERAS_NORMALIZATION_EPSILON,
+        },
+        "layers": layers,
+    }
+
+
 def export_model(
     model: Any,
     rep_X: npt.NDArray[np.float32],
@@ -209,6 +243,7 @@ def export_model(
     (out / "feature_spec.h").write_text(feature_spec_h())
     (out / "golden_vectors.h").write_text(golden_vectors_h(g))
     (out / "golden_vectors.json").write_text(json.dumps(g, indent=1) + "\n")
+    (out / "mlp_weights.json").write_text(json.dumps(mlp_weights(model, version)) + "\n")
     meta = {
         "version": version,
         "featureSpecHash": feature_spec_hash(),

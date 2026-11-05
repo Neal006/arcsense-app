@@ -70,15 +70,18 @@ def test_training_is_deterministic(data) -> None:  # type: ignore[no-untyped-def
 def test_export_artifacts_and_checks(exported) -> None:  # type: ignore[no-untyped-def]
     _, _, res = exported
     names = sorted(p.name for p in res.out_dir.iterdir())
-    assert names == [
-        "feature_spec.h",
-        "golden_vectors.h",
-        "golden_vectors.json",
-        "model.tflite",
-        "model_data.h",
-        "model_int8.tflite",
-        "model_meta.json",
-    ]
+    assert sorted(names) == sorted(
+        [
+            "feature_spec.h",
+            "golden_vectors.h",
+            "golden_vectors.json",
+            "model.tflite",
+            "model_data.h",
+            "model_int8.tflite",
+            "model_meta.json",
+            "mlp_weights.json",
+        ]
+    )
     assert set(res.ops) <= ALLOWED_OPS
     assert "FULLY_CONNECTED" in res.ops
     assert res.int8_bytes < MAX_INT8_BYTES
@@ -117,3 +120,22 @@ def test_c_headers_compile_as_arduino_cpp(exported, tmp_path: Path) -> None:  # 
         check=True,
     )
     assert subprocess.run([str(exe)]).returncode == 0
+
+
+def test_framework_free_mlp_reproduces_float_tflite(exported) -> None:  # type: ignore[no-untyped-def]
+    _, X, res = exported
+    w = json.loads((res.out_dir / "mlp_weights.json").read_text())
+    n = w["normalization"]
+    h = (X[:100].astype(np.float64) - np.array(n["mean"])) / np.maximum(
+        np.sqrt(np.array(n["variance"])), n["epsilon"]
+    )
+    for layer in w["layers"]:
+        h = h @ np.array(layer["kernel"]) + np.array(layer["bias"])
+        if layer["activation"] == "relu":
+            h = np.maximum(h, 0)
+        else:
+            assert layer["activation"] == "softmax"
+            e = np.exp(h - h.max(axis=1, keepdims=True))
+            h = e / e.sum(axis=1, keepdims=True)
+    tfl = TfliteRunner((res.out_dir / "model.tflite").read_bytes()).predict(X[:100])
+    np.testing.assert_allclose(h, tfl, atol=1e-5)
