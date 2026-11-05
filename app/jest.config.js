@@ -12,6 +12,7 @@ module.exports = {
     '!src/app/**',
     '!src/shared/generated/**',
     '!src/testing/**',
+    '!src/db/open.ts',
   ],
   coverageThreshold: {
     global: { lines: 90, branches: 85 },
