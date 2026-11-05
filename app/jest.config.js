@@ -11,6 +11,7 @@ module.exports = {
     '!src/**/__tests__/**',
     '!src/app/**',
     '!src/shared/generated/**',
+    '!src/testing/**',
   ],
   coverageThreshold: {
     global: { lines: 90, branches: 85 },
