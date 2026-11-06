@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from .bin_reader import TICK_US, TIMER_MOD, BinHeader, build_bin
@@ -30,7 +31,7 @@ class AnkleClock:
     def slope(self) -> float:
         return 1.0 + self.drift_ppm * 1e-6
 
-    def device_us(self, phone_us: np.ndarray | float) -> np.ndarray:
+    def device_us(self, phone_us: npt.NDArray[np.float64] | float) -> npt.NDArray[np.float64]:
         return np.asarray(self.slope * np.asarray(phone_us) + self.offset_us, dtype=np.float64)
 
 
@@ -52,13 +53,13 @@ def _recording(
     side: str,
     clock: AnkleClock,
     duration_s: float,
-    token_phone_us: np.ndarray,
-    tokens: np.ndarray,
+    token_phone_us: npt.NDArray[np.float64],
+    tokens: npt.NDArray[np.int64],
     rng: np.random.Generator,
     latency_ms: tuple[float, float],
     drop_tokens: set[int],
     lead_s: float,
-) -> tuple[bytes, np.ndarray]:
+) -> tuple[bytes, npt.NDArray[np.float64]]:
     # the ankle starts recording `lead_s` before the phone's session clock starts
     start_dev = float(clock.device_us(-lead_s * 1e6))
     n = int((duration_s + lead_s) * 1e6 / SAMPLE_US)

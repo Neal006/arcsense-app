@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 
@@ -29,8 +30,8 @@ def export_of(sim: SimulatedSession) -> AppExport:
 
 
 def true_rel_device_us(
-    sim: SimulatedSession, clock: AnkleClock, phone_us: np.ndarray
-) -> np.ndarray:
+    sim: SimulatedSession, clock: AnkleClock, phone_us: npt.NDArray[np.float64]
+) -> npt.NDArray[np.float64]:
     """Device time as read from the BIN (relative to its first sample)."""
     return clock.slope * (np.asarray(phone_us) + sim.lead_s * 1e6)
 
@@ -99,7 +100,11 @@ def test_label_mapping_lands_on_the_right_samples(sim30: SimulatedSession) -> No
     exp = export_of(sim30)
     rec = parse_bin(sim30.bin_l)
     lab = map_labels_to_device(exp, align_phone_to_device(exp, rec, "L"), rec)
-    truth = true_rel_device_us(sim30, sim30.clock_l, lab["session_ms"].to_numpy() * 1000)
+    truth = true_rel_device_us(
+        sim30,
+        sim30.clock_l,
+        np.asarray(lab["session_ms"].to_numpy(), dtype=np.float64) * 1000.0,
+    )
     err_ms = (rec.device_time_us[lab["sample_index"].to_numpy()] - truth) / 1000
     assert np.all(np.abs(err_ms) < 20)
     assert not lab["outside_recording"].any()

@@ -51,7 +51,9 @@ def xy(df: pd.DataFrame) -> tuple[npt.NDArray[np.float32], npt.NDArray[np.int64]
     return X, y
 
 
-def loso_splits(df: pd.DataFrame) -> Iterator[tuple[str, np.ndarray, np.ndarray]]:
+def loso_splits(
+    df: pd.DataFrame,
+) -> Iterator[tuple[str, npt.NDArray[np.int64], npt.NDArray[np.int64]]]:
     """Leave-one-subject-out: (held-out subject, train index, test index)."""
     subjects = sorted(df["subject"].unique())
     if len(subjects) < 2:

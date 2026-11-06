@@ -13,6 +13,7 @@ tested end to end before real labelled trials exist, nothing more.
 from __future__ import annotations
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from .features import stride_features
@@ -64,7 +65,7 @@ def reference_strides() -> pd.DataFrame:
 
 
 def synth_strides(
-    cls: str, n: int, rng: np.random.Generator, subject_shift: np.ndarray | None = None
+    cls: str, n: int, rng: np.random.Generator, subject_shift: npt.NDArray[np.float64] | None = None
 ) -> pd.DataFrame:
     if cls not in class_names():
         raise ValueError(f"unknown class {cls}")

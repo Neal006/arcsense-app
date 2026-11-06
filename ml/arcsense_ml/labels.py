@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from .shared import labels_by_id
@@ -29,7 +30,7 @@ class Segment:
     auto_closed: bool
 
 
-def stride_device_time_us(strides: pd.DataFrame) -> np.ndarray:
+def stride_device_time_us(strides: pd.DataFrame) -> npt.NDArray[np.float64]:
     """Device time (BIN timeline, us) at which each stride ended."""
     return strides["sampleIndex"].to_numpy(dtype=np.float64) * DSP_PERIOD_US
 
